@@ -4,6 +4,7 @@
 
 library(tidyverse)
 library(paletteer)
+library(corrplot)
 
 airq <- read_csv('air_quality_health_dataset.csv')
 
@@ -37,5 +38,15 @@ airq3 <- airq %>%
          .before = 18)
 
 airq3 %>% 
-  ggplot(aes(x = AQI, y = mask_usage_rate)) + geom_point() + 
+  ggplot(aes(x = mask_usage_rate, y = n_hospit)) + geom_point() + 
   facet_wrap(~region)
+
+# It seems there is very little information to be gained from this
+# there's basically no trend at all
+
+# Making a correlation plot now
+
+airq_cor <- cor(airq[5:28])
+corrplot(airq_cor, method = 'shade')  # variables have none or very minimal correlation
+
+
