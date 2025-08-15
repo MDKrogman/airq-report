@@ -4,6 +4,8 @@
 
 library(tidyverse)
 library(caret)
+library(tidymodels)
+
 
 airq <- read_csv('air_quality_health_dataset.csv') %>% 
   separate(date, into = c('year', 'month', 'day'), sep = '-')
@@ -68,3 +70,62 @@ summary(harmful_hospit_model)
 
 # note at end of work session: ihospit_model is our best/most intriguing so far,
 # but should also look more into that mobility_index variable
+
+# I will actually do some ML here
+# A model to predict the number of hospital visits, regardless of emergency or no
+# would be helpful for determining staff/other resource needs
+
+set.seed(449)
+
+# skipping zv/correlation steps because we already know their unimportance
+
+index <- initial_split(airq_hospit, prop = .8)
+train <- training(index)
+test <- testing(index)
+cv_folds <- vfold_cv(data = train, v = 10)
+
+rec1 <- recipe(n_hospit ~ ., data = train) %>% 
+  step_dummy(region, month)
+
+rec2 <- rec1 %>% 
+  step_normalize(all_numeric_predictors()) 
+
+rec3 <- rec2 %>% 
+  step_interact(terms = ~ (PM2.5 + PM10 + NO2 + SO2 + CO + O3)^2) # same interactions as in ihospit_model
+
+rec4 <- rec1 %>% 
+  step_interact(terms = ~ (PM2.5 + PM10 + NO2 + SO2 + CO + O3)^2) # curious to see if normalization has a huge effect
+
+rf_spec <- rand_forest(
+  mtry = tune(),
+  min_n = tune(),
+  mode = 'regression',
+  engine = 'randomForest'
+)
+
+rf_spec2 <- rand_forest(
+  mtry = tune(),
+  min_n = tune(),
+  mode = 'regression',
+  engine = 'ranger'
+)
+
+knn_spec <- nearest_neighbor(
+  mode = 'regression',
+  engine = 'kknn',
+  neighbors = tune()
+)
+
+wf_set <- workflow_set(
+  preproc = list(rec1, rec2, rec3, rec4),
+  models = list(rf_spec, rf_spec2, knn_spec),
+  cross = TRUE
+)
+
+fit_workflows <- wf_set %>% 
+  workflow_map(
+    fn = 'tune_grid',
+    grid = 10,
+    resamples = cv_folds,
+    verbose = TRUE
+  )
