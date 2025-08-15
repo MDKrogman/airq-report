@@ -130,9 +130,7 @@ fit_workflows <- wf_set %>%
     verbose = TRUE
   )
 
-autoplot(fit_workflows)
-collect_metrics(fit_workflows) # compares modles and recipes
-best_wf_id <- rank_results(fit_workflows, rank_metric = 'accuracy',
+best_wf_id <- rank_results(fit_workflows, rank_metric = 'rmse',
                            select_best = TRUE) %>% 
   slice_head(n = 1) %>% 
   pull(wflow_id)
@@ -140,3 +138,24 @@ best_wf_id <- rank_results(fit_workflows, rank_metric = 'accuracy',
 wf_best <- extract_workflow(fit_workflows,   # Gotta pull out the best workflow
                             id = best_wf_id)
 
+wf_best_tuned <- fit_workflows[fit_workflows$wflow_id == best_wf_id,
+                               'result'][[1]][[1]]
+
+collect_metrics(wf_best_tuned) %>%
+  filter(.metric == 'rmse') %>%     
+  arrange(mean)
+
+wf_final <- finalize_workflow(wf_best,
+                              select_best(wf_best_tuned, metric = 'rmse')) # In case everything needs to be rerun: rec3_rand_forest2
+wf_final_fit <- last_fit(wf_final, index)                                  # mtry = 1, min_n = 14, on ranger
+
+final_model <- fit(wf_final, data = airq_hospit)
+
+predictions <- predict(final_model, new_data = airq_hospit)
+predictions$.pred <- ceiling(predictions$.pred) # rounding up because you can't have part of a bed of course
+results <- bind_cols(airq_hospit, predictions)
+
+results %>%                             # Looking at differences
+  group_by(month) %>%                   
+  select(c(month, n_hospit, .pred)) %>% 
+  View()
