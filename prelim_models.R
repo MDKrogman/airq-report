@@ -129,3 +129,14 @@ fit_workflows <- wf_set %>%
     resamples = cv_folds,
     verbose = TRUE
   )
+
+autoplot(fit_workflows)
+collect_metrics(fit_workflows) # compares modles and recipes
+best_wf_id <- rank_results(fit_workflows, rank_metric = 'accuracy',
+                           select_best = TRUE) %>% 
+  slice_head(n = 1) %>% 
+  pull(wflow_id)
+
+wf_best <- extract_workflow(fit_workflows,   # Gotta pull out the best workflow
+                            id = best_wf_id)
+
