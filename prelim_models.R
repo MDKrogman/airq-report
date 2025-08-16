@@ -96,6 +96,11 @@ rec3 <- rec2 %>%
 rec4 <- rec1 %>% 
   step_interact(terms = ~ (PM2.5 + PM10 + NO2 + SO2 + CO + O3)^2) # curious to see if normalization has a huge effect
 
+# rec3 was the best one but I still found the rmse kinda big so we're going to try and get something better
+
+rec5 <- rec3 %>% 
+  step_nzv(all_numeric_predictors())  # I figured this unnecessary earlier but it really can't hurt
+
 rf_spec <- rand_forest(
   mtry = tune(),
   min_n = tune(),
@@ -117,7 +122,7 @@ knn_spec <- nearest_neighbor(
 )
 
 wf_set <- workflow_set(
-  preproc = list(rec1, rec2, rec3, rec4),
+  preproc = list(rec3, rec5),
   models = list(rf_spec, rf_spec2, knn_spec),
   cross = TRUE
 )
