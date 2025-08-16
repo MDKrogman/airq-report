@@ -151,8 +151,8 @@ collect_metrics(wf_best_tuned) %>%
   arrange(mean)
 
 wf_final <- finalize_workflow(wf_best,
-                              select_best(wf_best_tuned, metric = 'rmse')) # In case everything needs to be rerun: rec3_rand_forest2
-wf_final_fit <- last_fit(wf_final, index)                                  # mtry = 1, min_n = 14, on ranger
+                              select_best(wf_best_tuned, metric = 'rmse')) # In case everything needs to be rerun: rec3_rand_forest1
+wf_final_fit <- last_fit(wf_final, index)                                  
 
 final_model <- fit(wf_final, data = airq_hospit)
 
@@ -160,7 +160,6 @@ predictions <- predict(final_model, new_data = airq_hospit)
 predictions$.pred <- ceiling(predictions$.pred) # rounding up because you can't have part of a bed of course
 results <- bind_cols(airq_hospit, predictions)
 
-results %>%                             # Looking at differences
-  group_by(month) %>%                   
-  select(c(month, n_hospit, .pred)) %>% 
-  View()
+# so now .pred gives us an approximation of how many people will be in hospitals throughout the entire day
+# so, they'll know how to allocate their resources appropriately.
+# the only thing that could make this more specific would be to have hour-by-hour data
