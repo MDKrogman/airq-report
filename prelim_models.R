@@ -231,27 +231,33 @@ glm_fit_workflows <- glm_wf_set %>%
     verbose = TRUE
   )
 
-glm_best_wf_id <- rank_results(fit_workflows, rank_metric = 'rmse',
+autoplot(glm_fit_workflows)
+
+glm_best_wf_id <- rank_results(glm_fit_workflows, rank_metric = 'accuracy',
                            select_best = TRUE) %>% 
   slice_head(n = 1) %>% 
   pull(wflow_id)
 
-glm_wf_best <- extract_workflow(fit_workflows,   # Gotta pull out the best workflow
-                            id = best_wf_id)
+glm_wf_best <- extract_workflow(glm_fit_workflows,   # Gotta pull out the best workflow
+                            id = glm_best_wf_id)
 
-glm_wf_best_tuned <- fit_workflows[glm_fit_workflows$wflow_id == glm_best_wf_id,
+glm_wf_best_tuned <- glm_fit_workflows[glm_fit_workflows$wflow_id == glm_best_wf_id,
                                'result'][[1]][[1]]
 
 collect_metrics(glm_wf_best_tuned) %>%
-  filter(.metric == 'rmse') %>%     
-  arrange(mean)
+  filter(.metric == 'accuracy') %>%     
+  arrange(desc(mean))
 
-glm_wf_final <- finalize_workflow(wf_best,
-                              select_best(wf_best_tuned, metric = 'rmse')) # In case everything needs to be rerun: rec3_rand_forest1
-glm_wf_final_fit <- last_fit(wf_final, index)                                  
+glm_wf_final <- finalize_workflow(glm_wf_best,
+                              select_best(glm_wf_best_tuned, metric = 'accuracy')) # gives a pretty definitive tune settings
+glm_wf_final_fit <- last_fit(glm_wf_final, index2)                                  
 
-final_glm <- fit(glm_wf_final, data = airq_hospit)
+final_glm <- fit(glm_wf_final, data = airq_lockdown)
 
 predictions_glm <- predict(final_glm, new_data = airq_lockdown)
 results_glm <- bind_cols(airq_lockdown, predictions_glm)
 
+results_glm %>% 
+  select(c(lockdown_status, .pred_class)) %>% 
+  View()
+s
