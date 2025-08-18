@@ -189,7 +189,7 @@ glm_rec1 <- recipe(lockdown_status ~ ., data = train2) %>%
 
 glm_rec2 <- glm_rec1 %>% 
   step_normalize(all_numeric_predictors()) %>% 
-  step_nzv(all_numeric_predictors())
+  step_interact(terms = ~ (PM2.5 + PM10 + NO2 + SO2 + CO + O3)^2)
 
 glm_rf_spec <- rand_forest(
   mtry = tune(),
