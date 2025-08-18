@@ -185,9 +185,11 @@ test2 <- testing(index2)
 cv_folds2 <- vfold_cv(data = train2, v = 10)
 
 glm_rec1 <- recipe(lockdown_status ~ ., data = train2) %>% 
-  step_dummy(region, month)
+  step_novel(all_nominal_predictors()) %>% 
+  step_dummy(all_nominal_predictors())
 
 glm_rec2 <- glm_rec1 %>% 
+  step_zv(all_nominal_predictors()) %>% 
   step_normalize(all_numeric_predictors()) %>% 
   step_interact(terms = ~ (PM2.5 + PM10 + NO2 + SO2 + CO + O3)^2)
 
@@ -204,6 +206,7 @@ glm_log_spec <- logistic_reg(
 )
 
 glm_log_spec2 <- logistic_reg(
+  penalty = tune(),
   mode = 'classification',
   engine = 'glmnet'
 )
