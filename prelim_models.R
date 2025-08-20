@@ -260,4 +260,18 @@ results_glm <- bind_cols(airq_lockdown, predictions_glm)
 results_glm %>% 
   select(c(lockdown_status, .pred_class)) %>% 
   View()
-s
+
+
+# some more non-ML stuff here
+
+test <- glm(lockdown_status ~ (PM2.5 + PM10 + NO2 + SO2 + CO + O3)^2, data = airq_lockdown, family = 'binomial')
+summary(test)
+
+# The most significant term here is the PM2.5:SO2 interaction term. According to a quick google search
+# wildfires/agricultural burning release SO2 into the atmosphere (!)
+# https://cpo.noaa.gov/quantifying-sulfur-dioxide-emissions-and-understanding-air-quality-impacts-from-fire-activity/
+
+aqitest <- lm(AQI ~ (PM2.5 + PM10 + NO2 + SO2 + CO + O3)^2, data = airq)
+summary(aqitest)
+
+# kind of a similar story here
