@@ -5,6 +5,7 @@
 library(tidyverse)
 library(paletteer)
 library(corrplot)
+library(patchwork)
 
 airq <- read_csv('air_quality_health_dataset.csv')
 
@@ -49,4 +50,46 @@ airq3 %>%
 airq_cor <- cor(airq[5:28])
 corrplot(airq_cor, method = 'shade')  # variables have none or very minimal correlation
 
+# New idea after playing with models
+
+airq4 <- airq %>% 
+  pivot_longer(cols = 6:11,
+               names_to = 'pollutant',
+               values_to = 'pollutant_level'
+              ) %>% 
+  relocate(pollutant, pollutant_level, .after = AQI)
+
+airq4$pollutant <- factor(airq4$pollutant, levels = c('CO', 'SO2', 'O3', 'NO2', 'PM2.5', 'PM10'))
+
+p1 <- ggplot(airq4, aes(x = pollutant_level, y = lockdown_status, color = pollutant)) +
+  geom_jitter(height = .4, alpha = .4) + 
+  scale_y_continuous(breaks = c(0, 1)) +
+  theme_minimal() +
+  scale_colour_paletteer_d("MetBrewer::Juarez") +
+  theme(
+    legend.position = 'none'
+  ) +
+  labs(
+    x = '', y = 'Lockdown Status',
+    color = 'Pollutant'
+  )
+
+p2 <- ggplot(airq4, aes(x = pollutant_level, y = school_closures, color = pollutant)) +
+  geom_jitter(height = .4, alpha = .4) + 
+  scale_y_continuous(breaks = c(0, 1)) +
+  theme_minimal() +
+  scale_colour_paletteer_d("MetBrewer::Juarez") +
+  theme(
+    legend.position = 'bottom'
+  ) +
+  labs(
+    x = 'Pollutant Level', y = 'School Closure Status',
+    color = 'Pollutant'
+  )
+
+p1 / p2
+
+# detailing these more because I think these will be useful visualizations
+# pay attention to when the pollutant tends to be lower on days when the lockdowns/school closures occur
+# also note that the number of dots has effectively been multiplied by 6 since we pivoted the data
 
