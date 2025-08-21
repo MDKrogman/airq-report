@@ -93,3 +93,10 @@ p1 / p2
 # pay attention to when the pollutant tends to be lower on days when the lockdowns/school closures occur
 # also note that the number of dots has effectively been multiplied by 6 since we pivoted the data
 
+airq4 %>% 
+  filter(pollutant == 'PM2.5') %>% 
+  ggplot(aes(x = pollutant_level, y = AQI, color = region)) + geom_point(alpha = .5) +
+  facet_wrap(~month) + 
+  scale_colour_paletteer_d("MetBrewer::Juarez")
+
+# May be useful in conjunction w/ a time series
