@@ -99,4 +99,14 @@ airq4 %>%
   facet_wrap(~month) + 
   scale_colour_paletteer_d("MetBrewer::Juarez")
 
+airq4 %>% 
+  filter(pollutant == 'PM2.5') %>% 
+  ggplot(aes(x = pollutant_level, y = respiratory_admissions, color = region)) + geom_point(alpha = .5) +
+  facet_wrap(~month) + 
+  scale_colour_paletteer_d("MetBrewer::Juarez") +
+  labs(
+    x = 'PM2.5 Level', y = 'Respiratory Hospital Admissions',
+    color = 'Region'
+  )
+
 # May be useful in conjunction w/ a time series
