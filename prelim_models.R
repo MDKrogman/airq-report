@@ -264,14 +264,25 @@ results_glm %>%
 
 # some more non-ML stuff here
 
-test <- glm(lockdown_status ~ (PM2.5 + PM10 + NO2 + SO2 + CO + O3)^2, data = airq_lockdown, family = 'binomial')
-summary(test)
+lockdown_glm <- glm(lockdown_status ~ (PM2.5 + PM10 + NO2 + SO2 + CO + O3)^2, data = airq_lockdown, family = 'binomial')
+summary(lockdown_glm)
+
+lockdown_glm2 <- glm(lockdown_status ~ (PM2.5 + SO2 + CO)^2, data = airq_lockdown, family = 'binomial')
+summary(lockdown_glm2)
 
 # The most significant term here is the PM2.5:SO2 interaction term. According to a quick google search
 # wildfires/agricultural burning release SO2 into the atmosphere (!)
 # https://cpo.noaa.gov/quantifying-sulfur-dioxide-emissions-and-understanding-air-quality-impacts-from-fire-activity/
 
-aqitest <- lm(AQI ~ (PM2.5 + PM10 + NO2 + SO2 + CO + O3)^2, data = airq)
-summary(aqitest)
+# making a similar model for hospital beds
 
-# kind of a similar story here
+hospit_glm <- glm(n_hospit ~ (PM2.5 + PM10 + NO2 + SO2 + CO + O3)^2, data = airq_hospit, family = 'poisson')
+summary(hospit_glm)
+
+hospit_glm2 <- glm(n_hospit ~ (PM10 + CO + SO2)^2, data = airq_hospit, family = 'poisson')
+summary(hospit_glm2)
+
+# with both of these models we are able to get some evidence for effect on lockdown status/number of beds on a day
+# but with such interactions we lose some ability to interpret.
+# note that I also made a choice to just include the pollutants.
+# that's a benefit of randomforests like what my ML models use: they can handle those better.
