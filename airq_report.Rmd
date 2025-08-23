@@ -1,0 +1,26 @@
+---
+title: "airq_report"
+author: "Matthew Krogman"
+output: pdf_document
+font_size: 12pt
+---
+
+# Abstract
+
+
+
+# Introduction
+
+
+
+# The Appeal and Drawbacks of GLMs
+
+
+
+# Introducing Machine Learning Models for Predictive Use
+
+
+
+# Discussion
+
+
