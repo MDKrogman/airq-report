@@ -29,7 +29,7 @@ airq2 <- airq %>%
 airq2 %>% 
   ggplot(aes(x = month, y = n_hospit)) +
   geom_point(color = 'navy') +
-  geom_line(aes(group = region), color = 'navy') + 
+  geom_line(aes(group = region), color = 'navy') +
   facet_grid(~region)
 
 # There's something here but this leads me to a new idea
