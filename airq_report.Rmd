@@ -11,6 +11,10 @@ font_size: 12pt
 
 # Introduction
 
+As climate change continues to progress, and the population of major urban and industrial centers, more attention has been given to the quality of the air and the danger of breathing polluted air. Although emissions of harmful chemicals in the United States have reduced, thanks to the Clean Air Act, the American Lung Association claims that, as of 2024, 131 million Americans live in areas with unhealthy levels of air pollution.^[“2024 ‘State of the Air’ Report Reveals Most ‘Hazardous’ Air Quality Days in 25 Years.” American Lung Association, Saint Paul, United States. April 24, 2024. https://www.lung.org/media/press-releases/sota-2024.] This still-existent trend of more frequent and longer-lasting wildfires.^[Rickly, P. S et al.: “Emission factors and evolution of SO2 measured from biomass burning in wildfires and agricultural fires”, Atmos. *Chem. Phys., 22, 15603–15620*, https://doi.org/10.5194/acp-22-15603-2022, 2022.] This environmental trend prompts the necessity to create models so that we may be better prepared to handle worsening air quality in the future. With data on pollutants and certain demographic data, it should be possible to prepare for lockdowns based on air quality and predict the demand on hospital resources in a specific location.
+
+# Data
+
 
 
 # The Appeal and Drawbacks of GLMs
