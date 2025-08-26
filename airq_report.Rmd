@@ -5,6 +5,10 @@ output: pdf_document
 font_size: 12pt
 ---
 
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+
 # Abstract
 
 
@@ -15,7 +19,9 @@ As climate change continues to progress, and the population of major urban and i
 
 # Data
 
+The data to be used in this report is from a synthetic dataset created for Kaggle by Khushi Yadav, using a license from MIT. It is a time series spanning from the beginning of 2020 to the end of 2021. A large number of quantitative variables are included, such as AQI, industrial activity, and measures of the "six common pollutants" (PM$_{2.5}$, PM$_{10}$, O$_{3}$, CO, SO$_{2}$, and NO$_{2}$). Qualitative variables like the region and whether or not a lockdown has been issued are also included. Throughout this report, all variables in the dataset will be used in multiple contexts to create effective prediction models for future use.
 
+Though the data may be synthetic, the results are still true to the real world–it was generated using public domain resources on realistic statistical distributions for accuracy, while protecting privacy by limiting real-world attachment to individual data points.
 
 # The Appeal and Drawbacks of GLMs
 
