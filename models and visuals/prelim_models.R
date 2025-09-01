@@ -5,6 +5,7 @@
 library(tidyverse)
 library(caret)
 library(tidymodels)
+library(vip)
 
 
 airq <- read_csv('air_quality_health_dataset.csv') %>% 
@@ -286,3 +287,15 @@ summary(hospit_glm2)
 # but with such interactions we lose some ability to interpret.
 # note that I also made a choice to just include the pollutants.
 # that's a benefit of randomforests like what my ML models use: they can handle those better.
+
+
+p3 <- ggplot(results, aes(results, x = n_hospit, y = .pred)) +
+        geom_point(alpha = 0.5, color = 'steelblue') +
+        geom_abline(slope = 1, intercept = 0, linetype = 'dashed') +
+        theme_minimal() +
+        labs(
+          x = 'Actual Hospital Demand', y = 'Predicted Hospital Demand',
+          title = 'Model Predictions vs. Actual Values'
+        ) 
+
+# Can't run this just yet, need to wait for sourcing to stop running
