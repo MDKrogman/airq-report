@@ -7,6 +7,19 @@ font_size: 12pt
 
 ```{r setup, include=FALSE, message=FALSE, warning=FALSE}
 library(tidyverse)
+library(paletteer)
+library(patchwork)
+
+airq <- read_csv('air_quality_health_dataset.csv') %>% 
+  separate(date, into = c('year', 'month', 'day'), sep = '-')
+
+airq4 <- airq %>% 
+  pivot_longer(cols = 6:11,
+               names_to = 'pollutant',
+               values_to = 'pollutant_level'
+              ) %>% 
+  relocate(pollutant, pollutant_level, .after = AQI)
+airq4$pollutant <- factor(airq4$pollutant, levels = c('CO', 'SO2', 'O3', 'NO2', 'PM2.5', 'PM10'))
 ```
 
 # Abstract
@@ -38,6 +51,40 @@ $SE_{PM_{2.5} * CO} = 0.011, p = .07$\newline
 $SE_{SO_2 * CO} = 0.035, p = .02$\newline
 
 There is quite a bit of doubt to be cast on this model, but it does also pique interest for further consideration. Indeed, there are a number of terms that provide strong evidence for an effect on lockdown status $(p < .05)$. Of note is the interaction term between $PM_{2.5}$ and $SO_{2}$. This can be directly related to environmental factors, like wildfires. Wildfire smoke releases large amounts of $PM_{2.5}$, which in turn contains sulfate $(SO_4)$,^[Ricky et al. 15604.] which can become sulfur dioxide under circumstances like wildfire. 
+
+The possibility of an interaction certainly seems possible based on previous research, but it is possible to see this with a plot that puts this problem in the context of our data scenario. See below:
+
+```{r echo=FALSE, message=FALSE, fig.height=4, fig.width=5, fig.align='center'}
+p1 <- ggplot(airq4, aes(x = pollutant_level, y = lockdown_status, color = pollutant)) +
+  geom_jitter(height = .4, alpha = .4) + 
+  scale_y_continuous(breaks = c(0, 1)) +
+  theme_minimal() +
+  scale_colour_paletteer_d("MetBrewer::Juarez") +
+  theme(
+    legend.position = 'none'
+  ) +
+  labs(
+    x = '', y = 'Lockdown Status',
+    color = 'Pollutant'
+  )
+
+p2 <- ggplot(airq4, aes(x = pollutant_level, y = school_closures, color = pollutant)) +
+  geom_jitter(height = .4, alpha = .4) + 
+  scale_y_continuous(breaks = c(0, 1)) +
+  theme_minimal() +
+  scale_colour_paletteer_d("MetBrewer::Juarez") +
+  theme(
+    legend.position = 'bottom'
+  ) +
+  labs(
+    x = 'Pollutant Level', y = 'School Closure Status',
+    color = 'Pollutant'
+  )
+
+p1 / p2
+```
+
+The main takeaway from this plot is that in both cases of lockdowns and school closures, the pollutant level remains in the same region along the x-axis, regardless of if the observation was part of a day where there was a lockdown or not. The fact that the regions are the same suggests that there is an interactive effect between one or multiple pollutants that has an affect on air quality, such that a lockdown or school closure would be called. Though we are not interested in school closures as a response varaible for this report, it works with lockdown status to confirm our suspicions about an interaction in the data.
 
 The other response variable we will focus on is the number of hospital beds required in a day, made by combining variables relating to hospital resources. That model is as such:
 
