@@ -3,6 +3,8 @@ title: "airq_report"
 author: "Matthew Krogman"
 output: pdf_document
 font_size: 12pt
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE, message=FALSE, warning=FALSE}
@@ -13,6 +15,7 @@ library(patchwork)
 airq <- read_csv('air_quality_health_dataset.csv') %>% 
   separate(date, into = c('year', 'month', 'day'), sep = '-')
 
+# pivoting the data
 airq4 <- airq %>% 
   pivot_longer(cols = 6:11,
                names_to = 'pollutant',
@@ -20,6 +23,10 @@ airq4 <- airq %>%
               ) %>% 
   relocate(pollutant, pollutant_level, .after = AQI)
 airq4$pollutant <- factor(airq4$pollutant, levels = c('CO', 'SO2', 'O3', 'NO2', 'PM2.5', 'PM10'))
+
+# results of machine learning models
+ml_results <- readRDS('results.rds')
+ml_results_glm <- readRDS('results_glm.rds')
 ```
 
 # Abstract
@@ -54,33 +61,7 @@ There is quite a bit of doubt to be cast on this model, but it does also pique i
 
 The possibility of an interaction certainly seems possible based on previous research, but it is possible to see this with a plot that puts this problem in the context of our data scenario. See below:
 
-```{r echo=FALSE, message=FALSE, fig.height=4, fig.width=5, fig.align='center'}
-p1 <- ggplot(airq4, aes(x = pollutant_level, y = lockdown_status, color = pollutant)) +
-  geom_jitter(height = .4, alpha = .4) + 
-  scale_y_continuous(breaks = c(0, 1)) +
-  theme_minimal() +
-  scale_colour_paletteer_d("MetBrewer::Juarez") +
-  theme(
-    legend.position = 'none'
-  ) +
-  labs(
-    x = '', y = 'Lockdown Status',
-    color = 'Pollutant'
-  )
-
-p2 <- ggplot(airq4, aes(x = pollutant_level, y = school_closures, color = pollutant)) +
-  geom_jitter(height = .4, alpha = .4) + 
-  scale_y_continuous(breaks = c(0, 1)) +
-  theme_minimal() +
-  scale_colour_paletteer_d("MetBrewer::Juarez") +
-  theme(
-    legend.position = 'bottom'
-  ) +
-  labs(
-    x = 'Pollutant Level', y = 'School Closure Status',
-    color = 'Pollutant'
-  )
-
+```{r show-plot, echo=FALSE, message=FALSE, fig.height=4, fig.width=5, fig.align='center'}
 p1 / p2
 ```
 
@@ -113,5 +94,6 @@ The first model, about lockdown status, first novelizes and creates dummy variab
 The second model focuses on the demand of hospital resources, again drawing that number from multiple variables related to hospital resources. This is another randomforest model which creates dummy variables for the nominal predictors, normalizes numeric predictors, and uses the same interaction terms as the previous model. The hyperparameters mtry and min_n are again in use, and they are set to 1 and 14, respectively-this setup resulted in the lowest rmse across all models (5.92). This number seems somewhat high on first inspection, but when considering the practical use of a model like this with data that only has one observation per day, it is much more acceptable. The model can be used to give guidence to hospitals and clinics on how many patients they would come to expect on a singular day. Resources can then be allocated based on its predictions. Since hospitals admit patients throughout the day, rather than all at once, the seemingly large rmse is less of a worry.
 
 # Discussion
+
 
 

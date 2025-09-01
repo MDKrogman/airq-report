@@ -164,6 +164,7 @@ final_model <- fit(wf_final, data = airq_hospit)
 predictions <- predict(final_model, new_data = airq_hospit)
 predictions$.pred <- ceiling(predictions$.pred) # rounding up because you can't have part of a bed of course
 results <- bind_cols(airq_hospit, predictions)
+saveRDS(results, 'results.rds')
 
 # so now .pred gives us an approximation of how many people will be in hospitals throughout the entire day
 # so, they'll know how to allocate their resources appropriately.
@@ -257,6 +258,7 @@ final_glm <- fit(glm_wf_final, data = airq_lockdown)
 
 predictions_glm <- predict(final_glm, new_data = airq_lockdown)
 results_glm <- bind_cols(airq_lockdown, predictions_glm)
+saveRDS(results_glm, 'results_glm.rds')
 
 results_glm %>% 
   select(c(lockdown_status, .pred_class)) %>% 
