@@ -25,8 +25,8 @@ airq4 <- airq %>%
 airq4$pollutant <- factor(airq4$pollutant, levels = c('CO', 'SO2', 'O3', 'NO2', 'PM2.5', 'PM10'))
 
 # results of machine learning models
-ml_results <- readRDS('results.rds')
-ml_results_glm <- readRDS('results_glm.rds')
+ml_results <- readRDS('models and visuals/results.rds')
+ml_results_glm <- readRDS('models and visuals/results_glm.rds')
 ```
 
 # Abstract
@@ -61,7 +61,33 @@ There is quite a bit of doubt to be cast on this model, but it does also pique i
 
 The possibility of an interaction certainly seems possible based on previous research, but it is possible to see this with a plot that puts this problem in the context of our data scenario. See below:
 
-```{r show-plot, echo=FALSE, message=FALSE, fig.height=4, fig.width=5, fig.align='center'}
+```{r echo=FALSE, message=FALSE, fig.height=4, fig.width=5, fig.align='center'}
+p1 <- ggplot(airq4, aes(x = pollutant_level, y = lockdown_status, color = pollutant)) +
+  geom_jitter(height = .4, alpha = .4) + 
+  scale_y_continuous(breaks = c(0, 1)) +
+  theme_minimal() +
+  scale_colour_paletteer_d("MetBrewer::Juarez") +
+  theme(
+    legend.position = 'none'
+  ) +
+  labs(
+    x = '', y = 'Lockdown Status',
+    color = 'Pollutant'
+  )
+
+p2 <- ggplot(airq4, aes(x = pollutant_level, y = school_closures, color = pollutant)) +
+  geom_jitter(height = .4, alpha = .4) + 
+  scale_y_continuous(breaks = c(0, 1)) +
+  theme_minimal() +
+  scale_colour_paletteer_d("MetBrewer::Juarez") +
+  theme(
+    legend.position = 'bottom'
+  ) +
+  labs(
+    x = 'Pollutant Level', y = 'School Closure Status',
+    color = 'Pollutant'
+  )
+
 p1 / p2
 ```
 
@@ -91,9 +117,22 @@ When making these machine learning models, it is feasable to fit all of the vara
 
 The first model, about lockdown status, first novelizes and creates dummy variables for the nominal predictors (month, region). Areas of zero variance are removed, then the numeric variables are all normalized. Lastly, an interaction step is added with all of the "six common pollutants" to make full use of their potential interactions without worrying about overfitting. Training the model recipe through tidymodels' workflow map system, we are also able to use hyperparameters to their highest function (mtry = 25, min_n = 35) to increase model performance further. What results is a ML model that is able to predict with 85.7% accuracy whether or not there is a lockdown on a random day when testing data is introduced.
 
-The second model focuses on the demand of hospital resources, again drawing that number from multiple variables related to hospital resources. This is another randomforest model which creates dummy variables for the nominal predictors, normalizes numeric predictors, and uses the same interaction terms as the previous model. The hyperparameters mtry and min_n are again in use, and they are set to 1 and 14, respectively-this setup resulted in the lowest rmse across all models (5.92). This number seems somewhat high on first inspection, but when considering the practical use of a model like this with data that only has one observation per day, it is much more acceptable. The model can be used to give guidence to hospitals and clinics on how many patients they would come to expect on a singular day. Resources can then be allocated based on its predictions. Since hospitals admit patients throughout the day, rather than all at once, the seemingly large rmse is less of a worry.
+The second model focuses on the demand of hospital resources, again drawing that number from multiple variables related to hospital resources. This is another randomforest model which creates dummy variables for the nominal predictors, normalizes numeric predictors, and uses the same interaction terms as the previous model. The hyperparameters mtry and min_n are again in use, and they are set to 1 and 14, respectively–this setup resulted in the lowest rmse across all models (5.92). This number seems somewhat high on first inspection, but when considering the practical use of a model like this with data that only has one observation per day, it is much more acceptable. The model can be used to give guidance to hospitals and clinics on how many patients they would come to expect on a singular day. Resources can then be allocated based on its predictions. Since hospitals admit patients throughout the day, rather than all at once, the seemingly large rmse is less of a worry.
+
+```{r, echo=FALSE, fig.height=4, fig.width=5, fig.align='center'}
+ggplot(ml_results, aes(x = n_hospit, y = .pred)) +
+    geom_point(alpha = 0.5, color = 'steelblue') +
+    geom_abline(slope = 1, intercept = 0, linetype = 'dashed') +
+    theme_minimal() +
+    labs(
+      x = 'Actual Hospital Demand', y = 'Predicted Hospital Demand',
+    ) 
+```
+
+This plot shows the model's consistency in guessing. Note the dashed line, which simply represents the equation $y = x$, or a perfect relationship where the model is 100% accurate (rmse = 0). The consistency at which the model misses the actual hospital demand would indicate bias or improper fit, but I believe this to be the effect of only having one observation per day instead of hourly observations.
 
 # Discussion
 
+Creating models for the prediction of lockdown status and hospital admissions based on this synthetic data provided some insight on the explanatory abilities of certain predictor variables while also helping determine what methods actually have the best predictive ability, robustness, and ability to adapt to unseen data. While the original GLMs were easier to interpret on a variable-by-variable basis, they pale in comparison to the predictive power of the randomforest models using machine learning. That is not to say that those GLMs are a failure–they hone in on the importance of the six common pollutants as predictor variables, and make it clear that they have interactive potential and work together to impact air quality in such a way that prompts reaction in the form of sickness or logistical reactions.
 
-
+There still exists possibilities for the data to have higher predictive power. In the case of hospital admissions, having hourly data might be more helpful and lead to a lower level of error overall. In its current state, the model can only predict admissions on a daily level. This is helpful without a doubt, and would help hospitals allocate resources, but having hourly predictions could be even more helpful in preparing for waves of demand depending on the time of day–there's not a chance that an equal number of patients are admitted during every hour of the day.  
