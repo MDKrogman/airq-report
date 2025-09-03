@@ -5,7 +5,7 @@
 library(tidyverse)
 library(caret)
 library(tidymodels)
-library(vip)
+
 
 
 airq <- read_csv('air_quality_health_dataset.csv') %>% 
@@ -90,7 +90,7 @@ test <- testing(index)
 cv_folds <- vfold_cv(data = train, v = 10)
 
 rec1 <- recipe(n_hospit ~ ., data = train) %>% 
-  step_dummy(region, month)
+  step_dummy(all_nominal_predictors(), one_hot = TRUE)
 
 rec2 <- rec1 %>% 
   step_normalize(all_numeric_predictors()) 
@@ -106,12 +106,9 @@ rec4 <- rec1 %>%
 rec5 <- rec3 %>% 
   step_nzv(all_numeric_predictors())  # I figured this unnecessary earlier but it really can't hurt
 
-rf_spec <- rand_forest(
-  mtry = tune(),
-  min_n = tune(),
-  mode = 'regression',
-  engine = 'randomForest'
-)
+rec6 <- rec3 %>% 
+  step_interact(terms = ~ starts_with('month_') * starts_with('region_'))
+
 
 rf_spec2 <- rand_forest(
   mtry = tune(),
@@ -127,8 +124,8 @@ knn_spec <- nearest_neighbor(
 )
 
 wf_set <- workflow_set(
-  preproc = list(rec3, rec5),
-  models = list(rf_spec, rf_spec2, knn_spec),
+  preproc = list(rec3, rec6),
+  models = list(rf_spec2),
   cross = TRUE
 )
 
@@ -170,7 +167,7 @@ saveRDS(results, 'results.rds')
 # so, they'll know how to allocate their resources appropriately.
 # the only thing that could make this more specific would be to have hour-by-hour data
 
-
+# After quite a few different attempts at improving rec3 I don't think it's possible
 
 
 
@@ -291,13 +288,12 @@ summary(hospit_glm2)
 # that's a benefit of randomforests like what my ML models use: they can handle those better.
 
 
-p3 <- ggplot(results, aes(results, x = n_hospit, y = .pred)) +
-        geom_point(alpha = 0.5, color = 'steelblue') +
-        geom_abline(slope = 1, intercept = 0, linetype = 'dashed') +
-        theme_minimal() +
-        labs(
-          x = 'Actual Hospital Demand', y = 'Predicted Hospital Demand',
-          title = 'Model Predictions vs. Actual Values'
-        ) 
+ggplot(results, aes(results, x = n_hospit, y = .pred)) +
+    geom_point(alpha = 0.5, color = 'steelblue') +
+    geom_abline(slope = 1, intercept = 0, linetype = 'dashed') +
+    theme_minimal() +
+    labs(
+      x = 'Actual Hospital Demand', y = 'Predicted Hospital Demand',
+    ) 
 
-# Can't run this just yet, need to wait for sourcing to stop running
+
